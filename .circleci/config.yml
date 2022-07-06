@@ -8,7 +8,7 @@ commands:
     steps:
       - slack/notify:
          event: fail
-         channel: cicd
+         channel: ci-notifier
          template: basic_fail_1
 
 # commands:
@@ -315,14 +315,15 @@ jobs:
 #               # your code here
 #             fi
             
-  notify_on_auccess:
+  notify_on_success:
     docker:
-      - image: cimg/node:13.8.0
+      - image: cimg/base
     steps:
       - slack/notify:
           event: pass
-          channel: cicd
+          channel: ci-notifier
           template: success_tagged_deployment_1
+
 workflows:
   default:
     jobs:
@@ -336,7 +337,7 @@ workflows:
           requires: [build-backend]
       - scan-frontend:
           requires: [build-frontend]
-      - notify_on_auccess:
+      - notify_on_success:
           requires:
             - test-frontend
             - test-backend
