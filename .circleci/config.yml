@@ -10,63 +10,22 @@ commands:
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
             sudo ./aws/install
+
   install_ansible:
-    description: Install Ansible V2
+    description: Install Ansible v2
     steps:
       - run:
-          name: Install Ansible V2
+          name: Install Ansible v2
           command: |
             sudo apt update
-            sudo apt install software-properties-common -y
+            sudo apt install software-properties-common
             sudo add-apt-repository --yes --update ppa:ansible/ansible
-            sudo apt install ansible -y
-            
-         
-  deploy-infrastructure:
-    docker:
-      - image: cimg/node:13.8.0
-    steps:
-      - checkout
-      - install_awscli
-      - run:
-          name: Ensure back-end infrastructure exists
-          command: |
-            aws cloudformation deploy \
-              --template-file .circleci/files/backend.yml \
-              --tags project=updapeople \
-              --stack-name "updapeople-backebd-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
-              #exit 1
-      - run:
-          name: Ensure front-end infrastructure exist
-          command: |
-            aws cloudformation deploy \
-              --template-file .circleci/files/frontend.yml \
-              --tags project=updapeople \
-              --stack-name "updapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
-              
-      - run:
-          name: Add back-end ip to ansible inventory
-          command: |
-            BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
-              --filters "Name-tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --output text)
-            echo $BACKEND_PUBLIC_IP
-            cat .circleci/ansible/inventory.txt
-            
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/.circleci/ansible/inventory.txt
-      # Here's where you will add some code to rollback on failure      
+            sudo apt install ansible
 
-# commands:
 #   destroy-environment:
 #     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
 #     parameters:
-#       # Add parameter here   
+#       # Add parameter here
 #     steps:
 #       - run:
 #           name: Destroy environments
@@ -78,7 +37,7 @@ commands:
 #   revert-migrations:
 #     description: Revert the last migration if successfully run in the current workflow.
 #     parameters:
-#       # Add parameter here     
+#       # Add parameter here
 #     steps:
 #       - run:
 #           name: Revert migrations
@@ -86,14 +45,14 @@ commands:
 #           command: |
 #             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
 #             SUCCESS = 1
-#             if(( $SUCCESS==1 )); 
+#             if(( $SUCCESS==1 ));
 #             then
 #             #  cd ~/project/backend
 #             #  npm install
 #             #  Add revert code here. You can find this in the Getting Started section.
 #               exit 1
 #             fi
-            
+
 jobs:
   build-frontend:
     docker:
@@ -111,7 +70,6 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-deps
-      - notify_on_failure
 
   build-backend:
     docker:
@@ -123,13 +81,12 @@ jobs:
       - run:
           name: Back-end build
           command: |
-             cd backend
-             npm install
-             npm run build
+            cd backend
+            npm install
+            npm run build
       - save_cache:
           paths: [backend/node_modules]
           key: backend-deps
-      - notify_on_failure
 
   test-frontend:
     docker:
@@ -144,9 +101,7 @@ jobs:
             cd frontend
             npm install
             npm test
-      - notify_on_failure
 
-                
   test-backend:
     docker:
       - image: cimg/node:13.8.0
@@ -157,14 +112,10 @@ jobs:
       - run:
           name: Back-end Unit Test
           command: |
-             cd backend
-             npm install
-             npm test
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-deps
-      - notify_on_failure
-            
+            cd backend
+            npm install
+            npm test
+
   scan-frontend:
     docker:
       - image: cimg/node:13.8.0
@@ -179,7 +130,6 @@ jobs:
             npm install
             npm audit fix --force --audit-level=critical
             npm audit --audit-level=critical
-      - notify_on_failure
 
   scan-backend:
     docker:
@@ -191,13 +141,51 @@ jobs:
       - run:
           name: Back-end Scan
           command: |
-             cd backend
-             npm install
-             npm audit fix --force --audit-level=critical
-             npm audit fix --force --audit-level=critical
-             npm audit --audit-level=critical
-      - notify_on_failure
+            cd backend
+            npm install
+            npm audit fix --force --audit-level=critical
+            npm audit fix --force --audit-level=critical
+            npm audit --audit-level=critical
 
+  deploy-infrastructure:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - install_awscli
+      - run:
+          name: Ensure back-end infrastructure exists
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              --tags project=udapeople \
+              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --tags project=udapeople \
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
+            echo $BACKEND_PUBLIC_IP >> .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
+
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
+      # Here's where you will add some code to rollback on failure
 
 #   configure-infrastructure:
 #     docker:
@@ -216,7 +204,7 @@ jobs:
 #           command: |
 #             # Your code here
 #             exit 1
-#       # Here's where you will add some code to rollback on failure      
+#       # Here's where you will add some code to rollback on failure
 
 #   run-migrations:
 #     docker:
@@ -233,7 +221,7 @@ jobs:
 #           command: |
 #             # Your code here
 #             exit 1
-#      # Here's where you will add some code to rollback on failure      
+#      # Here's where you will add some code to rollback on failure
 
 #   deploy-frontend:
 #     docker:
@@ -254,8 +242,8 @@ jobs:
 #           name: Deploy frontend objects
 #           command: |
 #             # your code here
-#       # Here's where you will add some code to rollback on failure      
-                    
+#       # Here's where you will add some code to rollback on failure
+
 #   deploy-backend:
 #     docker:
 #       # Docker image here that supports Ansible
@@ -271,11 +259,11 @@ jobs:
 #           name: Deploy backend
 #           command: |
 #             # your code here
-#       # Here's where you will add some code to rollback on failure  
+#       # Here's where you will add some code to rollback on failure
 
 #   smoke-test:
 #     docker:
-#       # Lightweight Docker image 
+#       # Lightweight Docker image
 #     steps:
 #       # Checkout code from git
 #       - run:
@@ -294,7 +282,7 @@ jobs:
 #           name: Frontend smoke test.
 #           command: |
 #             # your code here
-#       # Here's where you will add some code to rollback on failure  
+#       # Here's where you will add some code to rollback on failure
 
 #   cloudfront-update:
 #     docker:
@@ -309,7 +297,7 @@ jobs:
 #           name: Update cloudfront distribution
 #           command: |
 #             # your code here
-#       # Here's where you will add some code to rollback on failure  
+#       # Here's where you will add some code to rollback on failure
 
 # cleanup:
 #     docker:
@@ -329,7 +317,6 @@ jobs:
 #             then
 #               # your code here
 #             fi
-            
 
 workflows:
   default:
