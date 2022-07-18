@@ -258,7 +258,7 @@ jobs:
 #           command: |
 #             # your code here
 #       # Here's where you will add some code to rollback on failure
-deploy-frontend:
+  deploy-frontend:
     docker:
       - image: cimg/base:2022.06
     steps:
@@ -306,7 +306,7 @@ deploy-frontend:
 #             # your code here
 #       # Here's where you will add some code to rollback on failure
 
-deploy-backend:
+  deploy-backend:
     docker:
     - image: cimg/base:2022.06
     steps:
