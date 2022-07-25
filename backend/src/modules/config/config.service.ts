@@ -98,12 +98,12 @@ export class ConfigService {
   get TypeOrmDatabase(): TypeOrmModuleOptions {
     return {
       type: "postgres",//this.envConfig.TYPEORM_CONNECTION,
-      host: "updapeople-db.crof7erz8k4z.us-east-1.rds.amazonaws.com",
+      host: "salt.db.elephantsql.com",
       /*this.envConfig.TYPEORM_HOST,*/
       port: 5432,//this.envConfig.TYPEORM_PORT,
-      username: "postgres",//this.envConfig.TYPEORM_USERNAME,
-      password: "0pYQWHUG36aIdnQLr33d",//this.envConfig.TYPEORM_PASSWORD,
-      database: "glee",//this.envConfig.TYPEORM_DATABASE,
+      username: "bsdrgarf",//this.envConfig.TYPEORM_USERNAME,
+      password: "VNe8Mz1N8Hj75xtVfvvmCkJppTQxPd7j",//this.envConfig.TYPEORM_PASSWORD,
+      database: "bsdrgarf",//this.envConfig.TYPEORM_DATABASE,
       //entities: [this.envConfig.TYPEORM_ENTITIES],
       entities: [Product, Order, Employee],
       //logging: this.envConfig.TYPEORM_LOGGING === 'true',
