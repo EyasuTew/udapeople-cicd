@@ -1,0 +1,5 @@
+URL 01 - https://github.com/EyasuTew/udapeople-cicd
+URL 02 - https://udapeople-991c9a0.s3.amazonaws.com/index.html#/employees
+URL 03 - https://d331kj2pbrbach.cloudfront.net
+URL 04 - http://107.20.232.217:3030/api/status
+URL 05 - http://ec2-3-95-147-4.compute-1.amazonaws.com:9090/
