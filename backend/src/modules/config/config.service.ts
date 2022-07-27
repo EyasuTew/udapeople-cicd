@@ -97,15 +97,16 @@ export class ConfigService {
 
   get TypeOrmDatabase(): TypeOrmModuleOptions {
     return {
-      type: this.envConfig.TYPEORM_CONNECTION,
-      host: this.envConfig.TYPEORM_HOST,
-      port: this.envConfig.TYPEORM_PORT,
-      username: this.envConfig.TYPEORM_USERNAME,
-      password: this.envConfig.TYPEORM_PASSWORD,
-      database: this.envConfig.TYPEORM_DATABASE,
-      entities: [this.envConfig.TYPEORM_ENTITIES],
-      // entities: [Product, Order, Employee],
-      logging: this.envConfig.TYPEORM_LOGGING === 'true',
+      type: "postgres",//this.envConfig.TYPEORM_CONNECTION,
+      host: "salt.db.elephantsql.com",
+      /*this.envConfig.TYPEORM_HOST,*/
+      port: 5432,//this.envConfig.TYPEORM_PORT,
+      username: "bsdrgarf",//this.envConfig.TYPEORM_USERNAME,
+      password: "VNe8Mz1N8Hj75xtVfvvmCkJppTQxPd7j",//this.envConfig.TYPEORM_PASSWORD,
+      database: "bsdrgarf",//this.envConfig.TYPEORM_DATABASE,
+      //entities: [this.envConfig.TYPEORM_ENTITIES],
+      entities: [Product, Order, Employee],
+      //logging: this.envConfig.TYPEORM_LOGGING === 'true',
       extra: { max: 4, min: 1 },
       synchronize: false,
     };
